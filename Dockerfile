@@ -8,7 +8,8 @@
 # For more information, see https://docs.docker.com/dhi/
 
 # Use the dev image to build and install dependencies.
-FROM python:3.12-slim AS builder
+# The builder stage is also used directly in development (see compose.yaml).
+FROM python:3.14-slim  AS builder
 
 WORKDIR /app
 
@@ -22,14 +23,6 @@ ENV PATH="/venv/bin:$PATH"
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     pip install -r requirements.txt
-
-# Use the minimal runtime image. It runs as nonroot by default.
-FROM python:3.12-slim
-
-WORKDIR /app
-
-COPY --from=builder /venv /venv
-ENV PATH="/venv/bin:$PATH"
 
 # Copy the source code into the container.
 COPY . .
