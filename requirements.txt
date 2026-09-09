@@ -1,0 +1,9 @@
+# List of required pyhon packages
+# Also note that docker-buildx package (docker addon) is needed
+#  for docker compose to build container
+
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+rio-tiler==7.*
+rasterio==1.4.*
+numpy==2.*
