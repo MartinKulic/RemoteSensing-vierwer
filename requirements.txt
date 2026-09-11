@@ -2,7 +2,7 @@
 # Also note that docker-buildx package (docker addon) is needed
 #  for docker compose to build container
 
-fastapi==0.115.*
+fastapi>=0.120.0
 uvicorn[standard]==0.32.*
 rio-tiler==7.*
 rasterio==1.4.*
