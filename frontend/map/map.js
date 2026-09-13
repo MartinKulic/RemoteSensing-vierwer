@@ -4,21 +4,10 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-map.fitBounds([
-    [40.712, -74.227],
-    [40.774, -74.125]
-]);
+// fallback_bounds = [
+//     [40.712, -74.227],
+//     [40.774, -74.125]
+//     ]
+//initBounds = initBounds ?? fallbackBounds;
 
-async function get_init_bounds(){
-    try {
-
-    }
-    catch (e){
-        bounds = [
-    [40.712, -74.227],
-    [40.774, -74.125]
-]
-    }
-
-    return bounds
-}
+map.fitBounds(initBounds);
