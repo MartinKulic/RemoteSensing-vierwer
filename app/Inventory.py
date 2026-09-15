@@ -20,8 +20,23 @@ class Inventory:
 
         self.bounds = [[top, left], [bottom, right]]
 
-    def get_times(self):
+    def get_keyes(self):
         return self.inventory.index.to_list()
+
+    """
+        Should return strings of observation time 
+        Accepted time format is yy-mm-dd
+    """
+    def key_to_time(self, key) -> str:
+        raise Exception("Not implemented - This should be implemented in derived class")
+
+    """
+        Should return list of strings of observation times 
+        Accepted time format is yy-mm-dd
+        """
+    def get_times(self) -> list[str]:
+        return [self.key_to_time(key) for key in self.get_keyes()]
+
 
     def get_init_bbox(self):
         return self.bounds
@@ -33,10 +48,25 @@ class Inventory:
             r = np.array(src.read())
 
         return r
+
+
 class Inventory_Quarter (Inventory):
+    QUARTERS = [
+        "01-01",  # ("01-01", "03-31")
+        "04-01",  # ("04-01", "06-30")
+        "07-01",  # ("07-01", "09-30")
+        "10-01",  # ("10-01", "12-31")
+    ]
+
     def __init__(self, inventory_csv_path : Path):
         super().__init__(inventory_csv_path, ["Year", "Quarter"])
 
+    def key_to_time(self, key) -> str:
+        return f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1]-1]}"
+
+    # def get_keyes_to_times(self):
+    #     for key in self.get_times():
+    #         yield f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1]-1]}"
 
     def get_tiff(self, year : int, quarter : int):
         return Inventory.get_tiff(self, [year, quarter])

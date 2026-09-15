@@ -48,6 +48,7 @@ async def get_map(collection: CollectionsNames, request: Request):
         {
             "request": request,
             "bounds": select_collection.get_init_bbox(),
+            "availableKeyes": select_collection.get_keyes(),
             "availableTimes": select_collection.get_times(),
         },
     )
