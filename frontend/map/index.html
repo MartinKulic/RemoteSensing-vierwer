@@ -14,9 +14,23 @@
     <div id="map"></div>
 
     <div id="timeserie-control">
-        <p id="timeserie-curDate">Loading...</p>
-        <label for="timeserie-slider"></label>
-        <input type="range" id="timeserie-slider" min="0" max="0" value="0" step="1" />
+        <div class="timeserie-container-vertical">
+            <div id="status-bar" class="timeserie-container-horizontal">
+                <div id="status-download">
+{#                    <img id="loading-icon" class="status-icon" src="{{ url_for('static', path='assets/loading.gif') }}" alt="Loading animation">#}
+                    <img id="ready-icon" class="status-icon" src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
+                    <p id="timeserie-curDate">Loading...</p>
+                </div>
+
+            </div>
+
+            <div class="timeserie-container-vertical">
+                <label for="timeserie-slider"> Available observations:</label>
+                <input type="range" id="timeserie-slider" min="0" max="0" value="0" step="1" />
+            </div>
+        </div>
+
+
     </div>
 
 

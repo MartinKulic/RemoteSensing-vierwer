@@ -12,7 +12,6 @@ from app.Inventory import Inventory_Quarter
 app = FastAPI()
 
 frontend_dir = Path("frontend")
-
 app.mount(
     "/static",
     StaticFiles(directory=frontend_dir),
@@ -21,17 +20,15 @@ app.mount(
 templates = Jinja2Templates(directory=frontend_dir)
 app.frontend("/", directory=frontend_dir, fallback="404.html")
 
+
+
+
 class CollectionsNames(str, Enum):
     NDVI_W_GAPS = "NDVI_w_gaps"
-
-
 
 available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_NDVI/ndvi_inventory.csv")),
     }
-
-
-
 
 
 
@@ -56,5 +53,9 @@ async def get_map(collection: CollectionsNames, request: Request):
 async def get_map_default(request: Request):
     return await get_map(CollectionsNames.NDVI_W_GAPS, request)
 
-# @app.post("/map{collection}{}",)
+# @app.post("/map{collection}{time_key}")
+# async def get_collection_at_time(collection: CollectionsNames, time_key: list):
+#     select_collection = available_collections[collection]
+#
+#     return select_collection.get_tiff(time_key)
 
