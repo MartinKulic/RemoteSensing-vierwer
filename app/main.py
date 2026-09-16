@@ -5,7 +5,7 @@ from select import select
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.Inventory import Inventory_Quarter
 
@@ -25,6 +25,7 @@ app.frontend("/", directory=frontend_dir, fallback="404.html")
 
 class CollectionsNames(str, Enum):
     NDVI_W_GAPS = "NDVI with gaps"
+
 
 available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_NDVI/ndvi_inventory.csv")),
@@ -52,7 +53,7 @@ async def get_map(collection: CollectionsNames, request: Request):
     )
 @app.get("/map", response_class=HTMLResponse)
 async def get_map_default(request: Request):
-    return await get_map(CollectionsNames.NDVI_W_GAPS, request)
+    return RedirectResponse(request.url_for("get_map", collection=CollectionsNames.NDVI_W_GAPS.value), status_code=307) #301 - permanent redirect
 
 # @app.post("/map{collection}{time_key}")
 # async def get_collection_at_time(collection: CollectionsNames, time_key: list):
