@@ -6,6 +6,28 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 map.fitBounds(initBounds);
 
+timeseries_slider = document.getElementById("timeserie-slider");
+collection_sellect = document.getElementById('select-collection');
+
+function fit_slider(){
+    if ((availableTimes === null) || (availableKeys === null)){
+        return;
+    }
+
+    timeseries_slider.setAttribute("max", (availableTimes.length-1));
+}
+
+
 function get_tile(key){
 
 }
+
+
+collection_sellect.addEventListener('change', function() {
+    console.log('Selected value:', this.value);
+})
+
+
+
+
+fit_slider()

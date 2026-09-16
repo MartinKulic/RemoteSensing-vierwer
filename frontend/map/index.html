@@ -23,15 +23,16 @@
                 </div>
                 <div id="available-collections" class="timeserie-container-vertical">
                     <label for="select-collection">Select collection</label>
-                    {% if available_collections is defined and available_collections|length > 0 %}
+
                         <select id="select-collection">
-                            {% for collection in available_collections %}
-                                <option value="{{ collection }}">{{ collection }}</option>
-                            {% endfor %}
+                            {% if available_collections is defined and available_collections|length > 0 %}
+                                {% for collection in available_collections %}
+                                    <option value="{{ collection }}">{{ collection }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" disabled selected>-- No Collections Available  --</option>
+                            {% endif %}
                         </select>
-                    {% else %}
-                        <p>No Collections available</p>
-                    {% endif %}
                 </div>
 
             </div>
@@ -52,8 +53,8 @@
 
     <script>
         var initBounds = {{ bounds | tojson if bounds is defined else 'null'}} ?? [[40.712, -74.227], [40.774, -74.125]];
-        const availableKeys = {{ availableKeyes | tojson if availableKeyes is defined else "null" }}
-        const availableTimes = {{ availableTimes | tojson if availableTimes is defined else "null" }}
+        var availableKeys = {{ availableKeyes | tojson if availableKeyes is defined else "null" }}
+        var availableTimes = {{ availableTimes | tojson if availableTimes is defined else "null" }}
     </script>
     <script src="{{ url_for('static', path='map/map.js') }}"></script>
 </body>
