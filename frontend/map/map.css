@@ -22,7 +22,7 @@
 .timeserie-container-vertical{
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: center;
 }
 
 .timeserie-container-horizontal{

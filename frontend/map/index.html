@@ -21,6 +21,18 @@
                     <img id="ready-icon" class="status-icon" src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
                     <p id="timeserie-curDate">Loading...</p>
                 </div>
+                <div id="available-collections" class="timeserie-container-vertical">
+                    <label for="select-collection">Select collection</label>
+                    {% if available_collections is defined and available_collections|length > 0 %}
+                        <select id="select-collection">
+                            {% for collection in available_collections %}
+                                <option value="{{ collection }}">{{ collection }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <p>No Collections available</p>
+                    {% endif %}
+                </div>
 
             </div>
 

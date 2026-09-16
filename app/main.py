@@ -24,7 +24,7 @@ app.frontend("/", directory=frontend_dir, fallback="404.html")
 
 
 class CollectionsNames(str, Enum):
-    NDVI_W_GAPS = "NDVI_w_gaps"
+    NDVI_W_GAPS = "NDVI with gaps"
 
 available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_NDVI/ndvi_inventory.csv")),
@@ -47,6 +47,7 @@ async def get_map(collection: CollectionsNames, request: Request):
             "bounds": select_collection.get_init_bbox(),
             "availableKeyes": select_collection.get_keyes(),
             "availableTimes": select_collection.get_times(),
+            "available_collections": [col.value for col in available_collections],
         },
     )
 @app.get("/map", response_class=HTMLResponse)
