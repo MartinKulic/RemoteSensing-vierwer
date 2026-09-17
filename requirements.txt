@@ -4,6 +4,7 @@
 
 fastapi>=0.120.0
 jinja2
+python-multipart
 uvicorn[standard]==0.32.*
 #TiTiler
 rio-tiler==7.*

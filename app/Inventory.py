@@ -41,13 +41,20 @@ class Inventory:
     def get_init_bbox(self):
         return self.bounds
 
-    def get_tiff(self, key:list):
+    def get_tiff(self, key:tuple):
         path = self.inventory.loc[key]["Path"]
 
         with rasterio.open(path, "r") as src:
             r = np.array(src.read())
 
-        return r
+        print(r.shape)
+        r_np = np.array(r)
+
+        r_np_no_nan = np.array(r_np)
+        r_np_no_nan[np.any([np.isnan(r_np), np.isinf(r_np), np.isneginf(r_np)])] = -32768.
+        #r_np_no_nan = np.nan_to_num(r_np)
+
+        return r_np_no_nan.tolist()
 
 
 class Inventory_Quarter (Inventory):
@@ -68,12 +75,6 @@ class Inventory_Quarter (Inventory):
     #     for key in self.get_times():
     #         yield f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1]-1]}"
 
-    def get_tiff(self, year : int, quarter : int):
-        return Inventory.get_tiff(self, [year, quarter])
+    # def get_tiff(self, year : int, quarter : int):
+    #     return Inventory.get_tiff(self, [year, quarter])
 
-
-
-# inventory = Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_NDVI/ndvi_inventory.csv"))
-#
-# gtif = inventory.get_tiff(2020,3)
-# print(inventory.get_times())

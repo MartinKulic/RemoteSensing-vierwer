@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import BaseModel
 
 from app.Inventory import Inventory_Quarter
 
@@ -31,6 +32,8 @@ available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_NDVI/ndvi_inventory.csv")),
     }
 
+class tiffRequestBody(BaseModel):
+    time:tuple
 
 
 @app.get("/hello")
@@ -55,9 +58,11 @@ async def get_map(collection: CollectionsNames, request: Request):
 async def get_map_default(request: Request):
     return RedirectResponse(request.url_for("get_map", collection=CollectionsNames.NDVI_W_GAPS.value), status_code=307) #301 - permanent redirect
 
-# @app.post("/map{collection}{time_key}")
-# async def get_collection_at_time(collection: CollectionsNames, time_key: list):
-#     select_collection = available_collections[collection]
-#
-#     return select_collection.get_tiff(time_key)
+@app.post("/map/{collection}")
+async def get_collection_at_time(collection: CollectionsNames, tiff_request:tiffRequestBody):
+    select_collection = available_collections[collection] # collection should be valid thanks to fastAPI
+
+    time_key = tiff_request.time
+    print(time_key)
+    return select_collection.get_tiff(time_key)
 

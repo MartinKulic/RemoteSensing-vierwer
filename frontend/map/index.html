@@ -17,10 +17,20 @@
         <div class="timeserie-container-vertical">
             <div id="status-bar" class="timeserie-container-horizontal">
                 <div id="status-download">
-{#                    <img id="loading-icon" class="status-icon" src="{{ url_for('static', path='assets/loading.gif') }}" alt="Loading animation">#}
-                    <img id="ready-icon" class="status-icon" src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
+                    <img id="loading-icon" class="status-icon" src="{{ url_for('static', path='assets/loading.gif') }}" alt="Loading animation">
+                    <img id="ready-icon" style="visibility: hidden" class="status-icon" role="img" src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
                     <p id="timeserie-curDate">Loading...</p>
                 </div>
+
+                <div id="available-layers" class="timeserie-container-vertical">
+                    <label for="select-layer">Select layer</label>
+
+                        <select id="select-layer">
+                            <option value=0>NDVI</option>
+                            <option value=1>Observations</option>
+                        </select>
+                </div>
+
                 <div id="available-collections" class="timeserie-container-vertical">
                     <label for="select-collection">Select collection</label>
 
@@ -56,6 +66,7 @@
         var availableKeys = {{ availableKeyes | tojson if availableKeyes is defined else "null" }}
         var availableTimes = {{ availableTimes | tojson if availableTimes is defined else "null" }}
     </script>
-    <script src="{{ url_for('static', path='map/map.js') }}"></script>
+    <script src="{{ url_for('static', path='map/map_controller.js') }}"></script>
+    <script src="{{ url_for('static', path='map/script.js') }}"></script>
 </body>
 </html>

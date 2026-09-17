@@ -34,6 +34,7 @@
 
 .status-icon {
   max-width: 8vw;
+  max-height: 8vh;
   margin: 0;
   padding: 0;
 }
