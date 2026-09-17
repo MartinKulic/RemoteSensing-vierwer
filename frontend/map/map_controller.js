@@ -34,13 +34,13 @@ class MapController {
     }
 
     set_displayed_status_loading(){
-        this.ready_icon.style.visibility = "hidden";
-        this.loading_icon.style.visibility = "visible";
+        this.ready_icon.style.display = "none";
+        this.loading_icon.style.display = "block";
         this.current_date_indicator.textContent = "Loading...";
     }
     set_displayed_status_current_date(i){
-        this.loading_icon.style.visibility = "hidden";
-        this.ready_icon.style.visibility = "visible";
+        this.loading_icon.style.display = "none";
+        this.ready_icon.style.display = "block";
         this.current_date_indicator.textContent = availableTimes[i];
     }
 
