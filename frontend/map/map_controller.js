@@ -16,6 +16,8 @@ class MapController {
         this.current_date_indicator = document.getElementById(date_indicator_id);
 
         this.current_layer = null
+
+        this.opacity = 1
     }
 
     // collection_change(new_collection) {
@@ -65,13 +67,21 @@ class MapController {
         let new_layer = L.tileLayer(url, {
             maxZoom: 19,
             bounds: initBounds,   // keeps requests inside the raster extent
-            opacity: 1,
+            opacity: this.opacity,
         }).addTo(this.map);
 
         if (this.current_layer) {
             this.map.removeLayer(this.current_layer);
         }
         this.current_layer = new_layer;
+    }
+
+    set_opacity(val){
+        this.opacity = val
+
+        if (this.current_layer) {
+            this.current_layer.setOpacity(this.opacity)
+        }
     }
 
 }

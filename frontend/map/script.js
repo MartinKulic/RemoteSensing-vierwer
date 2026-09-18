@@ -15,3 +15,8 @@ document.getElementById("timeserie-slider").addEventListener("input", function(e
     let new_value = event.target.value;
     map_controller.set_ith_tiff(new_value)
 })
+
+document.getElementById("opacity-slider").addEventListener("input", function(event) {
+    let new_value = event.target.value;
+    map_controller.set_opacity(new_value)
+})
