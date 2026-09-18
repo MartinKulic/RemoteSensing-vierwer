@@ -15,8 +15,7 @@ class MapController {
         this.ready_icon = document.getElementById(ready_icon_id);
         this.current_date_indicator = document.getElementById(date_indicator_id);
 
-        this.casched_rasters = new Map();
-
+        this.current_layer = null
     }
 
     // collection_change(new_collection) {
@@ -44,41 +43,35 @@ class MapController {
         this.current_date_indicator.textContent = availableTimes[i];
     }
 
-    async set_ith_tiff(i){
+    set_ith_tiff(i){
         this.set_displayed_status_loading()
 
         let key = availableKeys[i]
-        let requested_tiff
-        if(this.casched_rasters.has(key)){
-            requested_tiff = this.casched_rasters.get(key);
-        }
-        else{
-            requested_tiff = await this.request_tiff(key)
-        }
-
-        //make it display requested_tiff
+        this.set_layer_for_key(key)
 
         this.set_displayed_status_current_date(i)
     }
 
-    async request_tiff(key){
-        let url = "/map/" + encodeURIComponent(this.sellected_collection);
-        let payload = {
-            "time" : key
+    set_layer_for_key(key){
+        let stringified_key = key.join("_")
+        let band = 1
+
+        console.log(stringified_key)
+        console.log(band)
+
+        let url = `/tiles/${encodeURIComponent(this.sellected_collection)}/${stringified_key}/{x}/{y}/{z}.png?band=${band}`
+        console.log(url)
+
+        let new_layer = L.tileLayer(url, {
+            maxZoom: 19,
+            bounds: initBounds,   // keeps requests inside the raster extent
+            opacity: 1,
+        }).addTo(this.map);
+
+        if (this.current_layer) {
+            this.map.removeLayer(this.current_layer);
         }
-
-        let response = await fetch(url, {
-        method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload) // Sends the array/list as JSON
-        });
-
-        if (!response.ok) throw new Error(`${url} -> ${response.status}`);
-
-        this.casched_rasters.set(key, response.data);
-
-        return response.json();
+        this.current_layer = new_layer;
     }
+
 }
