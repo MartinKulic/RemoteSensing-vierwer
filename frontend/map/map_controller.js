@@ -16,6 +16,7 @@ class MapController {
         this.current_date_indicator = document.getElementById(date_indicator_id);
 
         this.current_layer = null
+        this.caschedLayer = new Map()
 
         this.opacity = 1
     }
@@ -49,12 +50,31 @@ class MapController {
         this.set_displayed_status_loading()
 
         let key = availableKeys[i]
-        this.set_layer_for_key(key)
+        let map_key = availableTimes[i]
+        let wanted_layer = null
+
+        if(this.caschedLayer.has(map_key)){
+            wanted_layer = this.caschedLayer.get(map_key);
+        }
+        else{
+            wanted_layer = this.add_new_layer(key, map_key);
+        }
+
+        this.show_layer(wanted_layer)
 
         this.set_displayed_status_current_date(i)
     }
 
-    set_layer_for_key(key){
+    show_layer(layer){
+        layer.setOpacity(this.opacity);
+
+        if(this.current_layer){
+            this.current_layer.setOpacity(0);
+        }
+        this.current_layer = layer;
+    }
+
+    add_new_layer(key, map_key){
         let stringified_key = key.join("_")
         let band = 1
 
@@ -70,10 +90,9 @@ class MapController {
             opacity: this.opacity,
         }).addTo(this.map);
 
-        if (this.current_layer) {
-            this.map.removeLayer(this.current_layer);
-        }
-        this.current_layer = new_layer;
+        this.caschedLayer.set(map_key, new_layer);
+
+        return new_layer;
     }
 
     set_opacity(val){

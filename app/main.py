@@ -76,5 +76,9 @@ async def get_collection_at_time(collection: CollectionsNames,
     except TileOutsideBounds:
         return Response(status_code=204)
 
-    return Response(content=img, media_type="image/png")
+    return Response(
+        content=img,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=31536000, immutable"}
+    )
 
