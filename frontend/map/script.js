@@ -20,3 +20,7 @@ document.getElementById("opacity-slider").addEventListener("input", function(eve
     let new_value = event.target.value;
     map_controller.set_opacity(new_value)
 })
+
+document.getElementById("cache-all-button").addEventListener("click", function(event) {
+    map_controller.add_all_layers()
+})

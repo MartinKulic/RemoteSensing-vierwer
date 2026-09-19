@@ -60,12 +60,12 @@ class MapController {
             wanted_layer = this.add_new_layer(key, map_key);
         }
 
-        this.show_layer(wanted_layer)
+        this.change_shown_layer(wanted_layer)
 
         this.set_displayed_status_current_date(i)
     }
 
-    show_layer(layer){
+    change_shown_layer(layer){
         layer.setOpacity(this.opacity);
 
         if(this.current_layer){
@@ -93,6 +93,29 @@ class MapController {
         this.caschedLayer.set(map_key, new_layer);
 
         return new_layer;
+    }
+
+    async add_all_layers(){
+        if ((availableTimes === null) || (availableKeys === null)){
+
+            return;
+        }
+        this.set_displayed_status_loading()
+
+        this.caschedLayer.clear()
+
+        for (let i = 0; i < availableTimes.length; i++) {
+            let map_key = availableTimes[i]
+            // if (this.caschedLayer.has(map_key)){
+            //     continue;
+            // }
+
+            let new_layer = this.add_new_layer(availableKeys[i], map_key);
+            new_layer.setOpacity(0);
+        }
+
+        this.set_displayed_status_current_date(this.timeseries_slider.value)
+
     }
 
     set_opacity(val){
