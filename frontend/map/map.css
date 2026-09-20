@@ -1,6 +1,7 @@
 #map {
   position: absolute;
   inset: 0;
+  z-index: 100;
 }
 
 #timeserie-control {
@@ -46,5 +47,19 @@
 #timeserie-curDate{
   margin-top: 0;
   padding-top: 0;
+}
 
+#sidepannel{
+  width: 45%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 399;
+  background-color: white;
+  padding: 5px;
+}
+
+#sidepannel.hidden{
+  display: none;
 }

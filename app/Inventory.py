@@ -11,6 +11,8 @@ from rio_tiler.colormap import cmap as default_cmaps
 
 
 class Inventory:
+
+    NAN_value = -32768.0
     def __init__(self, inventory_csv_path : Path, keyes: list):
         self.inventory_path = inventory_csv_path
         self.keyes = keyes
@@ -61,13 +63,40 @@ class Inventory:
 
         return r_np
 
-    def get_ing(self, key:tuple, x:int, y:int, z:int, band:int = 0):
+    def get_img(self, key:tuple, x:int, y:int, z:int, band:int = 1):
         path = self.inventory.loc[key]["Path"]
 
         with Reader(path) as image:
             tile = image.tile(x,y,z, band)
 
         return tile.reproject(img_format="PNG")
+
+    def _get_timeseries_at_point(self, lat: float,lon: float, band: int = 1):
+        values = []
+        no_data_val = self.profile.get("nodata") if "nodata" in self.profile else np.nan
+
+        for key in self.get_keyes():
+            with Reader(str(self.inventory.loc[key]["Path"])) as image:
+                point = image.point(lat=lat, lon=lon, indexes=band)
+                value = point.data[0]
+                value = None if (value is None or value == no_data_val ) else float(value)
+            values.append(value)
+
+        return values
+
+    """
+        Returns json details about point to be send to frontend and displayed
+        It is expected for more keyes to be added (threashhold, year of detectio, etc.)
+    """
+    def get_data_for_point_response(self, lat:float, lon: float, band: int = 1):
+        values = self._get_timeseries_at_point(lat, lon, band)
+        times = self.get_times()
+
+        return {
+            "type": "simple",
+            "times": times,
+            "values": values
+            }
 
 
 class Inventory_Quarter (Inventory):
@@ -91,7 +120,7 @@ class Inventory_Quarter (Inventory):
         return f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1]-1]}"
 
  #   @overload
-    def get_ing(self, key: tuple, x: int, y: int, z: int, band: int = BANDS.NDVI):
+    def get_img(self, key: tuple, x: int, y: int, z: int, band: int = BANDS.NDVI):
         path = self.inventory.loc[key]["Path"]
         with Reader(str(path)) as image:
             img = image.tile(x, y, z, indexes=band)

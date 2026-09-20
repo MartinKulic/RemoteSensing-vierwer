@@ -72,7 +72,7 @@ async def get_collection_at_time(collection: CollectionsNames,
     time_key = tuple(int(part) for part in stringified_key.split("_"))
 
     try:
-        img = select_collection.get_ing(time_key, x, y, z, band)
+        img = select_collection.get_img(time_key, x, y, z, band)
     except TileOutsideBounds:
         return Response(status_code=204)
 
@@ -82,3 +82,11 @@ async def get_collection_at_time(collection: CollectionsNames,
         headers={"Cache-Control": "public, max-age=31536000, immutable"}
     )
 
+@app.post("/point/{collection}/{lat}/{long}")
+async def get_point(collection: CollectionsNames, lat: float, long: float,
+                    band: Annotated[int, Query(title="Index of band from GTiff. Index starts at 1")] = 1):
+
+    selected_collection = available_collections[collection]
+    response = selected_collection.get_data_for_point_response(lat, long, band)
+
+    return response
