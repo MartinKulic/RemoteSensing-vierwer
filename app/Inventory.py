@@ -11,9 +11,9 @@ from rio_tiler.colormap import cmap as default_cmaps
 
 
 class Inventory:
-
     NAN_value = -32768.0
-    def __init__(self, inventory_csv_path : Path, keyes: list):
+
+    def __init__(self, inventory_csv_path: Path, keyes: list):
         self.inventory_path = inventory_csv_path
         self.keyes = keyes
 
@@ -34,6 +34,7 @@ class Inventory:
         Should return strings of observation time 
         Accepted time format is yy-mm-dd
     """
+
     def key_to_time(self, key) -> str:
         raise Exception("Not implemented - This should be implemented in derived class")
 
@@ -41,14 +42,14 @@ class Inventory:
         Should return list of strings of observation times 
         Accepted time format is yy-mm-dd
         """
+
     def get_times(self) -> list[str]:
         return [self.key_to_time(key) for key in self.get_keyes()]
-
 
     def get_init_bbox(self):
         return self.bounds
 
-    def get_as_ndarray(self, key:tuple):
+    def get_as_ndarray(self, key: tuple):
         path = self.inventory.loc[key]["Path"]
 
         with rasterio.open(path, "r") as src:
@@ -57,21 +58,21 @@ class Inventory:
         print(r.shape)
         r_np = np.array(r)
 
-        #r_np_no_nan = np.array(r_np)
-        #r_np_no_nan[np.any([np.isnan(r_np), np.isinf(r_np), np.isneginf(r_np)])] = -32768.
-        #r_np_no_nan = np.nan_to_num(r_np)
+        # r_np_no_nan = np.array(r_np)
+        # r_np_no_nan[np.any([np.isnan(r_np), np.isinf(r_np), np.isneginf(r_np)])] = -32768.
+        # r_np_no_nan = np.nan_to_num(r_np)
 
         return r_np
 
-    def get_img(self, key:tuple, x:int, y:int, z:int, band:int = 1):
+    def get_img(self, key: tuple, x: int, y: int, z: int, band: int = 1):
         path = self.inventory.loc[key]["Path"]
 
         with Reader(path) as image:
-            tile = image.tile(x,y,z, band)
+            tile = image.tile(x, y, z, band)
 
         return tile.reproject(img_format="PNG")
 
-    def _get_timeseries_at_point(self, lat: float,lon: float, band: int = 1):
+    def _get_timeseries_at_point(self, lat: float, lon: float, band: int = 1):
         values = []
         no_data_val = self.profile.get("nodata") if "nodata" in self.profile else np.nan
 
@@ -79,7 +80,7 @@ class Inventory:
             with Reader(str(self.inventory.loc[key]["Path"])) as image:
                 point = image.point(lat=lat, lon=lon, indexes=band)
                 value = point.data[0]
-                value = None if (value is None or value == no_data_val ) else float(value)
+                value = None if (value is None or value == no_data_val) else float(value)
             values.append(value)
 
         return values
@@ -88,18 +89,43 @@ class Inventory:
         Returns json details about point to be send to frontend and displayed
         It is expected for more keyes to be added (threashhold, year of detectio, etc.)
     """
-    def get_data_for_point_response(self, lat:float, lon: float, band: int = 1):
+
+    def get_data_for_point_response(self, lat: float, lon: float, band: int = 1):
         values = self._get_timeseries_at_point(lat, lon, band)
         times = self.get_times()
 
         return {
-            "type": "simple",
-            "times": times,
-            "values": values
+            "draw_instructions": {
+                "type": "line",
+                "data": {
+                    "labels": times,
+                    "datasets": [{
+                        "label": "Value",
+                        "data": values,
+                        "spanGaps": True,
+                        "tension": 0.2,
+                    }],
+                },
+                "options": {
+                    "responsive": True,
+                    "scales": {
+                        "x": {
+                            "title": {
+                                "display": True,
+                                "text": "Time"}, },
+                        "y": {
+                            "title": {
+                                "display": True,
+                                "text": "Value"},
+                            "min": -1,
+                            "max": 1, },
+                    },
+                },
             }
+        }
 
 
-class Inventory_Quarter (Inventory):
+class Inventory_Quarter(Inventory):
     QUARTERS = [
         "01-01",  # ("01-01", "03-31")
         "04-01",  # ("04-01", "06-30")
@@ -111,33 +137,30 @@ class Inventory_Quarter (Inventory):
         NDVI = 1
         OBSERVATIONS = 2
 
-
-    def __init__(self, inventory_csv_path : Path):
+    def __init__(self, inventory_csv_path: Path):
         super().__init__(inventory_csv_path, ["Year", "Quarter"])
 
-#    @overload
+    #    @overload
     def key_to_time(self, key) -> str:
-        return f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1]-1]}"
+        return f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1] - 1]}"
 
- #   @overload
+    #   @overload
     def get_img(self, key: tuple, x: int, y: int, z: int, band: int = BANDS.NDVI):
         path = self.inventory.loc[key]["Path"]
         with Reader(str(path)) as image:
             img = image.tile(x, y, z, indexes=band)
 
-        if(band == Inventory_Quarter.BANDS.NDVI):
+        if (band == Inventory_Quarter.BANDS.NDVI):
             colored_img = self.colour_NDVI_img(img)
         else:
             colored_img = self.colour_Observations_img(img)
 
         return colored_img
 
-
     def colour_NDVI_img(self, img):
         img.rescale(in_range=((-1.0, 1.0),))  # NDVI range
         colormap = default_cmaps.get("rdylgn")  # closest built-in to your earlier choice
         return img.render(colormap=colormap, img_format="PNG")
-
 
     def colour_Observations_img(self, img):
         img.rescale(in_range=((-1.0, 1.0),))  # NDVI range
@@ -150,4 +173,3 @@ class Inventory_Quarter (Inventory):
 
     # def get_tiff(self, year : int, quarter : int):
     #     return Inventory.get_tiff(self, [year, quarter])
-

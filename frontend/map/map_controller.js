@@ -156,38 +156,48 @@ class MapController {
 
         let data = await response.json();
 
-        // Draw to graph
-        if (data.type === "simple") {
-            let ctx = this.chart.getContext("2d");
+        let ctx = this.chart.getContext("2d");
 
             if (this.chart_content) {
                 this.chart_content.destroy();
             }
 
-            this.chart_content = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: data.times,
-                    datasets: [{
-                        label: "Value",
-                        data: data.values,
-                        spanGaps: true,   // bridges over null (nodata / out-of-bounds) points
-                        tension: 0.2,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {display: true, text: "Time"},},
-                        y: {
-                            title: {display: true, text: "Value"},
-                            min: -1,
-                            max: 1,},
-                    },
-                },
-            });
-        }
+            this.chart_content = new Chart(ctx,
+                data.draw_instructions
+            )
+
+        // Draw to graph
+        // if (data.type === "simple") {
+        //     let ctx = this.chart.getContext("2d");
+        //
+        //     if (this.chart_content) {
+        //         this.chart_content.destroy();
+        //     }
+        //
+        //     this.chart_content = new Chart(ctx, {
+        //         type: "line",
+        //         data: {
+        //             labels: data.times,
+        //             datasets: [{
+        //                 label: "Value",
+        //                 data: data.values,
+        //                 spanGaps: true,
+        //                 tension: 0.2,
+        //             }],
+        //         },
+        //         options: {
+        //             responsive: true,
+        //             scales: {
+        //                 x: {
+        //                     title: {display: true, text: "Time"},},
+        //                 y: {
+        //                     title: {display: true, text: "Value"},
+        //                     min: -1,
+        //                     max: 1,},
+        //             },
+        //         },
+        //     });
+        // }
 
     }
 

@@ -26,11 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
         map_controller.add_all_layers()
     })
 
-    let map = map_controller.get_map()
-    map.on("click", function(event) {
-        console.log("clicked");
+    map_controller.get_map().on("click", function(event) {
         sidepannel.classList.remove("hidden");
         map_controller.handle_map_click(event)
+    })
+
+    document.getElementById("sidepannel_close_btn").addEventListener("click", function(event) {
+        sidepannel.classList.add("hidden");
+        map_controller.clean_selection()
     })
 });
 
