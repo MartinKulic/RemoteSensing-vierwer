@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 
 import rasterio
+from rasterio.transform import rowcol, xy
+from rasterio.warp import transform as warp_transform, transform_bounds
 from rio_tiler.io import Reader
 from rio_tiler.colormap import cmap as default_cmaps
 
@@ -90,12 +92,11 @@ class Inventory:
         It is expected for more keyes to be added (threashhold, year of detectio, etc.)
     """
 
-    def get_data_for_point_response(self, lat: float, lon: float, band: int = 1):
+    def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
         values = self._get_timeseries_at_point(lat, lon, band)
         times = self.get_times()
 
         return {
-            "draw_instructions": {
                 "type": "line",
                 "data": {
                     "labels": times,
@@ -121,8 +122,27 @@ class Inventory:
                             "max": 1, },
                     },
                 },
-            }
         }
+
+    def get_point_bounds (self, lat: float, lon: float):
+        transform = self.profile["transform"]
+        crs = self.profile["crs"]
+
+        if crs.to_epsg() != 4326:
+            xs, ys = warp_transform("EPSG:4326", crs, [lon], [lat])
+            x, y = xs[0], ys[0]
+        else:
+            x, y = lon, lat
+
+        row, col = rowcol(transform, x, y)
+
+        left, top = xy(transform, row, col, offset="ul")
+        right, bottom = xy(transform, row, col, offset="lr")
+
+        if crs.to_epsg() != 4326:
+            left, bottom, right, top = transform_bounds(crs, "EPSG:4326", left, bottom, right, top)
+
+        return [[top, left], [bottom, right]]
 
 
 class Inventory_Quarter(Inventory):

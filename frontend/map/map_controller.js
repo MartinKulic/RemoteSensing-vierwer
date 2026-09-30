@@ -8,7 +8,6 @@ class MapController {
         }).addTo(this.map);
 
 
-
         this.sellected_collection = selected_collection;
 
         this.timeseries_slider = document.getElementById(timeseries_slider_id);
@@ -18,7 +17,8 @@ class MapController {
 
         this.chart = document.getElementById(chart_id)
         this.chart_content = null
-        this.map_click_highlight = null
+        this.map_click_highlight_placeholder = null // placeholder imidiately after click
+        this.map_click_highlight_precise = null // highlighting clicked pixel bounds
 
         this.current_layer = null
         this.caschedLayer = new Map()
@@ -138,7 +138,7 @@ class MapController {
 
         // Mark selection at map
         this.clean_selection() // if previous selection clear it
-        this.map_click_highlight = L.circleMarker([lat, lng], {
+        this.map_click_highlight_placeholder = L.circleMarker([lat, lng], {
             radius: 8,
             color: "#333",
             weight: 2,
@@ -149,7 +149,7 @@ class MapController {
         // Fetch
         let url = `/point/${encodeURIComponent(this.sellected_collection)}/${lat}/${lng}?band=${band}`;
         let response = await fetch(url, {
-        method: "POST",
+            method: "POST",
 
         })
         if (!response.ok) throw new Error(`${url} -> ${response.status}`);
@@ -158,13 +158,23 @@ class MapController {
 
         let ctx = this.chart.getContext("2d");
 
-            if (this.chart_content) {
-                this.chart_content.destroy();
-            }
+        if (this.chart_content) {
+            this.chart_content.destroy();
+        }
 
-            this.chart_content = new Chart(ctx,
-                data.draw_instructions
-            )
+        this.chart_content = new Chart(ctx,
+            data.chart_config
+        )
+
+        if (!Object.hasOwn(data, "point_bounds")) {
+           console.log("response does not contain clicked point bounds")
+        } else {
+
+        // console.log(data)
+        // console.log(data.point_bounds)
+        this.highlight_selected_pixel(data.point_bounds)
+
+        }
 
         // Draw to graph
         // if (data.type === "simple") {
@@ -202,10 +212,27 @@ class MapController {
     }
 
     clean_selection() {
-        if (this.map_click_highlight) {
-            this.map.removeLayer(this.map_click_highlight);
-            this.map_click_highlight = null;
+        if (this.map_click_highlight_placeholder) {
+            this.map.removeLayer(this.map_click_highlight_placeholder);
+            this.map_click_highlight_placeholder = null;
         }
+        if (this.map_click_highlight_precise) {
+            this.map.removeLayer(this.map_click_highlight_precise);
+            this.map_click_highlight_precise = null;
+        }
+    }
+
+    highlight_selected_pixel(point_bounds){
+        if (this.map_click_highlight_placeholder) {
+            this.map.removeLayer(this.map_click_highlight_placeholder);
+            this.map_click_highlight_placeholder = null;
+        }
+        this.map_click_highlight_precise = L.rectangle(point_bounds, {
+                color: "#ff5252",
+                weight: 2,
+                fillColor: "#ff5252",
+                fillOpacity: 0.35,
+            }).addTo(this.map);
     }
 
 

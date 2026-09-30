@@ -87,6 +87,8 @@ async def get_point(collection: CollectionsNames, lat: float, long: float,
                     band: Annotated[int, Query(title="Index of band from GTiff. Index starts at 1")] = 1):
 
     selected_collection = available_collections[collection]
-    response = selected_collection.get_data_for_point_response(lat, long, band)
+    chart_config = selected_collection.get_chart_config_for_point_response(lat, long, band)
+    bounds = selected_collection.get_point_bounds(lat, long)
 
-    return response
+    return {"chart_config": chart_config,
+            "point_bounds": bounds}
