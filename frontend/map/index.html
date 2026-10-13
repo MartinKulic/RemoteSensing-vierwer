@@ -5,89 +5,96 @@
     <title>Map</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
-    <link rel="stylesheet" href="{{ url_for('static', path='map/map.css') }}" />
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <link rel="stylesheet" href="{{ url_for('static', path='map/map.css') }}"/>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 <body>
 
-    <div id="map"></div>
+<div id="map"></div>
 
-    <div id="timeserie-control">
+<div id="timeserie-control">
+    <div class="timeserie-container-vertical">
+        <div id="status-bar" class="timeserie-container-horizontal">
+            <div id="status-download">
+                <img id="loading-icon" class="status-icon" src="{{ url_for('static', path='assets/loading.gif') }}"
+                     alt="Loading animation">
+                <img id="ready-icon" style="display: none" class="status-icon" role="img"
+                     src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
+                <p id="timeserie-curDate">Loading...</p>
+            </div>
+
+            <div id="available-layers" class="timeserie-container-vertical">
+                <label for="select-layer">Select layer</label>
+
+                <select id="select-layer">
+                    {% if available_bands is defined and available_bands | length > 0 %}
+                        {% for band in available_bands %}
+                            <option value="{{ loop.index }}">{{ band }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled selected>-- No Collections Available --</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div id="available-collections" class="timeserie-container-vertical">
+                <label for="select-collection">Select collection</label>
+
+                <select id="select-collection">
+                    {% if available_collections is defined and available_collections|length > 0 %}
+                        {% for collection in available_collections %}
+                            <option value="{{ collection }}">{{ collection }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled selected>-- No Collections Available --</option>
+                    {% endif %}
+                </select>
+            </div>
+
+        </div>
+
         <div class="timeserie-container-vertical">
-            <div id="status-bar" class="timeserie-container-horizontal">
-                <div id="status-download">
-                    <img id="loading-icon" class="status-icon" src="{{ url_for('static', path='assets/loading.gif') }}" alt="Loading animation">
-                    <img id="ready-icon" style="display: none" class="status-icon" role="img" src="{{ url_for('static', path='assets/ready_placeholder.svg') }}" alt="Loading animation">
-                    <p id="timeserie-curDate">Loading...</p>
-                </div>
+            <label for="timeserie-slider"> Available observations:</label>
+            <input type="range" id="timeserie-slider" min="0" max="0" value="0" step="1"/>
+        </div>
 
-                <div id="available-layers" class="timeserie-container-vertical">
-                    <label for="select-layer">Select layer</label>
 
-                        <select id="select-layer">
-                            <option value=0>NDVI</option>
-                            <option value=1>Observations</option>
-                        </select>
-                </div>
-
-                <div id="available-collections" class="timeserie-container-vertical">
-                    <label for="select-collection">Select collection</label>
-
-                        <select id="select-collection">
-                            {% if available_collections is defined and available_collections|length > 0 %}
-                                {% for collection in available_collections %}
-                                    <option value="{{ collection }}">{{ collection }}</option>
-                                {% endfor %}
-                            {% else %}
-                                <option value="" disabled selected>-- No Collections Available  --</option>
-                            {% endif %}
-                        </select>
-                </div>
-
-            </div>
-
+        <div class="timeserie-container-horizontal">
             <div class="timeserie-container-vertical">
-                <label for="timeserie-slider"> Available observations:</label>
-                <input type="range" id="timeserie-slider" min="0" max="0" value="0" step="1" />
+                <label for="opacity-slider"> Opacity:</label>
+                <input type="range" id="opacity-slider" min="0" max="1" value="1" step="0.05"/>
             </div>
-
-
-            <div class="timeserie-container-horizontal">
-                <div class="timeserie-container-vertical">
-                    <label for="opacity-slider"> Opacity:</label>
-                    <input type="range" id="opacity-slider" min="0" max="1" value="1" step="0.05"/>
-                </div>
-                <button id="cache-all-button">Cache all</button>
-            </div>
+            <button id="cache-all-button">Cache all</button>
         </div>
-
-
-    </div>
-
-    <div id="sidepannel" class="hidden">
-        <div id="sidepannel-head" class="timeserie-container-horizontal">
-            <h3>Hello</h3>
-            <button id="sidepannel_close_btn">x</button>
-        </div>
-
-        <canvas id="point-chart"></canvas>
     </div>
 
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+</div>
 
-    <script>
-        var initBounds = {{ bounds | tojson if bounds is defined else 'null'}} ?? [[40.712, -74.227], [40.774, -74.125]];
-        var availableKeys = {{ availableKeyes | tojson if availableKeyes is defined else "null" }}
-        var availableTimes = {{ availableTimes | tojson if availableTimes is defined else "null" }}
-    </script>
-    <script src="{{ url_for('static', path='map/map_controller.js') }}"></script>
-    <script src="{{ url_for('static', path='map/script.js') }}"></script>
+<div id="sidepannel" class="hidden">
+    <div id="sidepannel-head" class="timeserie-container-horizontal">
+        <h3>Hello</h3>
+        <button id="sidepannel_close_btn">x</button>
+    </div>
+
+    <canvas id="point-chart"></canvas>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<script>
+    var initBounds = {{ bounds | tojson if bounds is defined else 'null'}} ?? [[40.712, -74.227], [40.774, -74.125]];
+    var availableKeys = {{ availableKeyes | tojson if availableKeyes is defined else "null" }}
+    var availableTimes = {{ availableTimes | tojson if availableTimes is defined else "null" }}
+</script>
+<script src="{{ url_for('static', path='map/map_controller.js') }}"></script>
+<script src="{{ url_for('static', path='map/script.js') }}"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import overload
+from typing import overload, override
 
 import numpy as np
 import pandas as pd
@@ -33,32 +33,38 @@ class Inventory:
         return self.inventory.index.to_list()
 
     """
+        Return list of bands's names available. Position of band in returned list shall correspond to it's index in raster +1
+    """
+    def get_bands(self)->list[str]:
+        raise Exception("Not implemented - This should be implemented in derived class")
+
+
+    """
         Should return strings of observation time 
         Accepted time format is yy-mm-dd
     """
-
     def key_to_time(self, key) -> str:
         raise Exception("Not implemented - This should be implemented in derived class")
+
 
     """
         Should return list of strings of observation times 
         Accepted time format is yy-mm-dd
-        """
-
+    """
     def get_times(self) -> list[str]:
         return [self.key_to_time(key) for key in self.get_keyes()]
 
     def get_init_bbox(self):
         return self.bounds
 
-    def get_as_ndarray(self, key: tuple):
-        path = self.inventory.loc[key]["Path"]
-
-        with rasterio.open(path, "r") as src:
-            r = np.array(src.read())
-
-        print(r.shape)
-        r_np = np.array(r)
+    # def get_as_ndarray(self, key: tuple):
+    #     path = self.inventory.loc[key]["Path"]
+    #
+    #     with rasterio.open(path, "r") as src:
+    #         r = np.array(src.read())
+    #
+    #     print(r.shape)
+    #     r_np = np.array(r)
 
         # r_np_no_nan = np.array(r_np)
         # r_np_no_nan[np.any([np.isnan(r_np), np.isinf(r_np), np.isneginf(r_np)])] = -32768.
@@ -74,7 +80,7 @@ class Inventory:
 
         return tile.reproject(img_format="PNG")
 
-    def _get_timeseries_at_point(self, lat: float, lon: float, band: int = 1):
+    def _get_timeseries_values_at_point(self, lat: float, lon: float, band: int = 1):
         values = []
         no_data_val = self.profile.get("nodata") if "nodata" in self.profile else np.nan
 
@@ -87,42 +93,13 @@ class Inventory:
 
         return values
 
+
     """
         Returns json details about point to be send to frontend and displayed
         It is expected for more keyes to be added (threashhold, year of detectio, etc.)
     """
-
     def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
-        values = self._get_timeseries_at_point(lat, lon, band)
-        times = self.get_times()
-
-        return {
-                "type": "line",
-                "data": {
-                    "labels": times,
-                    "datasets": [{
-                        "label": "Value",
-                        "data": values,
-                        "spanGaps": True,
-                        "tension": 0.2,
-                    }],
-                },
-                "options": {
-                    "responsive": True,
-                    "scales": {
-                        "x": {
-                            "title": {
-                                "display": True,
-                                "text": "Time"}, },
-                        "y": {
-                            "title": {
-                                "display": True,
-                                "text": "Value"},
-                            "min": -1,
-                            "max": 1, },
-                    },
-                },
-        }
+        raise Exception("Not implemented - This should be implemented in derived class")
 
     def get_point_bounds (self, lat: float, lon: float):
         transform = self.profile["transform"]
@@ -160,11 +137,11 @@ class Inventory_Quarter(Inventory):
     def __init__(self, inventory_csv_path: Path):
         super().__init__(inventory_csv_path, ["Year", "Quarter"])
 
-    #    @overload
+    @override
     def key_to_time(self, key) -> str:
         return f"{key[0]}-{Inventory_Quarter.QUARTERS[key[1] - 1]}"
 
-    #   @overload
+    @override
     def get_img(self, key: tuple, x: int, y: int, z: int, band: int = BANDS.NDVI):
         path = self.inventory.loc[key]["Path"]
         with Reader(str(path)) as image:
@@ -186,6 +163,44 @@ class Inventory_Quarter(Inventory):
         img.rescale(in_range=((-1.0, 1.0),))  # NDVI range
         colormap = default_cmaps.get("rdylgn")  # closest built-in to your earlier choice
         return img.render(colormap=colormap, img_format="PNG")
+
+    @override
+    def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
+        values = self._get_timeseries_values_at_point(lat, lon, band)
+        times = self.get_times()
+
+        return {
+                "type": "line",
+                "data": {
+                    "labels": times,
+                    "datasets": [{
+                        "label": "Value",
+                        "data": values,
+                        "spanGaps": True,
+                        "tension": 0.2,
+                    }],
+                },
+                "options": {
+                    "responsive": True,
+                    "scales": {
+                        "x": {
+                            "title": {
+                                "display": True,
+                                "text": "Time"}, },
+                        "y": {
+                            "title": {
+                                "display": True,
+                                "text": "Value"},
+                            "min": -1,
+                            "max": 1, },
+                    },
+                },
+        }
+
+    @override
+    def get_bands(self) -> list[str]:
+        #return ["NDVI", "Observations"]
+        return [m.name for m in Inventory_Quarter.BANDS]
 
     # def get_keyes_to_times(self):
     #     for key in self.get_times():

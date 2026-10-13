@@ -2,24 +2,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const sidepannel = document.getElementById('sidepannel');
     const sellected_collection = document.getElementById("select-collection").value;
-    const map_controller = new MapController(sellected_collection)
+    const bandSelector = document.getElementById("select-layer");
+    const timeseriesSlider  = document.getElementById("timeserie-slider")
+    const map_controller = new MapController(sellected_collection, bandSelector);
 
     map_controller.fit_bounds(initBounds)
     map_controller.fit_slider()
 
-    map_controller.set_ith_tiff(document.getElementById("timeserie-slider").value)
+    map_controller.set_ith_tiff(document.getElementById("timeserie-slider").value, bandSelector.value)
 
 
     // input  - Fires continuously while dragging
     // change - Fires when dragging stops or focus is lost
-    document.getElementById("timeserie-slider").addEventListener("input", function(event) {
+    timeseriesSlider.addEventListener("input", function(event) {
         let new_value = event.target.value;
-        map_controller.set_ith_tiff(new_value)
+        let band = bandSelector.value;
+        // console.log("set_ith_tiff",new_value, band);
+
+        map_controller.set_ith_tiff(new_value, band)
     })
 
     document.getElementById("opacity-slider").addEventListener("input", function(event) {
         let new_value = event.target.value;
         map_controller.set_opacity(new_value)
+    })
+
+    bandSelector.addEventListener("change", function(event) {
+        let new_band = event.target.value;
+        let time = timeseriesSlider.value;
+        map_controller.set_ith_tiff(time, new_band)
+
     })
 
     document.getElementById("cache-all-button").addEventListener("click", function(event) {

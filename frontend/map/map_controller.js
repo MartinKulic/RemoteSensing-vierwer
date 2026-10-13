@@ -1,5 +1,5 @@
 class MapController {
-    constructor(selected_collection, timeseries_slider_id = "timeserie-slider", loading_icon_id = "loading-icon",
+    constructor(selected_collection, bandSelector, timeseries_slider_id = "timeserie-slider", loading_icon_id = "loading-icon",
                 ready_icon_id = "ready-icon", date_indicator_id = "timeserie-curDate", chart_id = "point-chart") {
         this.map = L.map('map');
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -21,7 +21,12 @@ class MapController {
         this.map_click_highlight_precise = null // highlighting clicked pixel bounds
 
         this.current_layer = null
-        this.caschedLayer = new Map()
+        this.caschedLayer = []
+        for (var i = 0 ; i < bandSelector.options.length ; i++){
+            this.caschedLayer.push(new Map())
+        }
+
+        this.selected_band = bandSelector.value
 
         this.opacity = 1
     }
@@ -53,17 +58,17 @@ class MapController {
         this.current_date_indicator.textContent = availableTimes[i];
     }
 
-    set_ith_tiff(i) {
+    set_ith_tiff(i, band) {
         this.set_displayed_status_loading()
 
         let key = availableKeys[i]
         let map_key = availableTimes[i]
         let wanted_layer = null
 
-        if (this.caschedLayer.has(map_key)) {
-            wanted_layer = this.caschedLayer.get(map_key);
+        if (this.caschedLayer[band-1].has(map_key)) {
+            wanted_layer = this.caschedLayer[band-1].get(map_key);
         } else {
-            wanted_layer = this.add_new_layer(key, map_key);
+            wanted_layer = this.add_new_layer(band, key, map_key);
         }
 
         this.change_shown_layer(wanted_layer)
@@ -80,9 +85,8 @@ class MapController {
         this.current_layer = layer;
     }
 
-    add_new_layer(key, map_key) {
+    add_new_layer(band, key, map_key) {
         let stringified_key = key.join("_")
-        let band = 1
 
         console.log(stringified_key)
         console.log(band)
@@ -96,7 +100,7 @@ class MapController {
             opacity: this.opacity,
         }).addTo(this.map);
 
-        this.caschedLayer.set(map_key, new_layer);
+        this.caschedLayer[band-1].set(map_key, new_layer);
 
         return new_layer;
     }
@@ -108,7 +112,10 @@ class MapController {
         }
         this.set_displayed_status_loading()
 
-        this.caschedLayer.clear()
+
+        for (var v = 0; v < this.caschedLayer.length; v++) {
+            this.caschedLayer[band].clear()
+        }
 
         for (let i = 0; i < availableTimes.length; i++) {
             let map_key = availableTimes[i]
@@ -116,8 +123,11 @@ class MapController {
             //     continue;
             // }
 
-            let new_layer = this.add_new_layer(availableKeys[i], map_key);
-            new_layer.setOpacity(0);
+            for (var band = 0; band < this.caschedLayer.length; band++) {
+                let new_layer = this.add_new_layer(band+1, availableKeys[i], map_key);
+                new_layer.setOpacity(0);
+            }
+
         }
 
         this.set_displayed_status_current_date(this.timeseries_slider.value)

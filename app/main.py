@@ -36,9 +36,6 @@ available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_COG_NDVI/ndvi_inventory.csv")),
     }
 
-class tiffRequestBody(BaseModel):
-    time:tuple
-    band:int
 
 
 @app.get("/hello")
@@ -57,6 +54,7 @@ async def get_map(collection: CollectionsNames, request: Request):
             "availableKeyes": select_collection.get_keyes(),
             "availableTimes": select_collection.get_times(),
             "available_collections": [col.value for col in available_collections],
+            "available_bands": select_collection.get_bands(),
         },
     )
 @app.get("/map", response_class=HTMLResponse)
