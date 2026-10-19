@@ -148,13 +148,13 @@ class Inventory_Quarter(Inventory):
             img = image.tile(x, y, z, indexes=band)
 
         if (band == Inventory_Quarter.BANDS.NDVI):
-            colored_img = self.colour_NDVI_img(img)
+            colored_img = Inventory_Quarter.colour_NDVI_img(img)
         else:
             colored_img = self.colour_Observations_img(img)
 
         return colored_img
 
-    def colour_NDVI_img(self, img):
+    def colour_NDVI_img(img):
         img.rescale(in_range=((-1.0, 1.0),))  # NDVI range
         colormap = default_cmaps.get("rdylgn")  # closest built-in to your earlier choice
         return img.render(colormap=colormap, img_format="PNG")
@@ -166,7 +166,7 @@ class Inventory_Quarter(Inventory):
 
     @override
     def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
-        values = self._get_timeseries_values_at_point(lat, lon, band)
+        values = self._get_timeseries_values_at_point(lat, lon, 1)
         times = self.get_times()
 
         return {
@@ -208,3 +208,97 @@ class Inventory_Quarter(Inventory):
 
     # def get_tiff(self, year : int, quarter : int):
     #     return Inventory.get_tiff(self, [year, quarter])
+
+
+
+
+class Inventory_Disturbance_Quarter(Inventory):
+
+    class BANDS(int, Enum):
+        DISTURBANCE = 1
+        NDVI = 2
+
+    def __init__(self, inventory_NDVI_csv_path: Path, inventory_disturbance_csv_path: Path):
+        super().__init__(inventory_NDVI_csv_path, ["Year"])
+
+        self.disturbance_inventory = pd.read_csv(inventory_disturbance_csv_path, sep=';', header=0)
+        self.disturbance_inventory.set_index(self.keyes, inplace=True)
+        self.disturbance_inventory.sort_index(ascending=True, inplace=True)
+
+    @override
+    def get_keyes(self):
+        return [[x] for x in self.inventory.index.to_list()]
+
+    @override
+    def get_bands(self) ->list[str]:
+        return [m.name for m in Inventory_Disturbance_Quarter.BANDS]
+
+    @override
+    def key_to_time(self, key) ->str:
+        return f"{key[0]}-Q3"
+
+    @override
+    def get_img(self, key: tuple, x: int, y: int, z: int, band: int = BANDS.DISTURBANCE):
+        if(band==Inventory_Disturbance_Quarter.BANDS.NDVI):
+            path = self.inventory.loc[key[0]]["Path"]
+        else:
+            path = self.disturbance_inventory.loc[key[0]]["Path"]
+
+        with Reader(str(path)) as image:
+            img = image.tile(x, y, z, indexes=1)
+
+        if (band == Inventory_Disturbance_Quarter.BANDS.DISTURBANCE):
+            colored_img = self.colour_disturbance(img)
+            #colored_img = Inventory_Quarter.colour_NDVI_img(img)
+        else:
+            colored_img = Inventory_Quarter.colour_NDVI_img(img)
+
+        return colored_img
+
+    def colour_disturbance(self, img):
+        colormap = {
+            0: (0, 0, 0, 0),  # Transparent for False
+            1: (255, 0, 0, 255)  # Red for True
+        }
+        return img.render(colormap=colormap, img_format="PNG")
+
+    @override
+    def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
+        values = []
+        for key in self.get_keyes():
+            with Reader(str(self.inventory.loc[key[0]]["Path"])) as image:
+                point = image.point(lat=lat, lon=lon, indexes=band)
+                value = point.data[0]
+                value = None if (value is None) else float(value)
+            values.append(value)
+
+        times = self.get_times()
+
+
+        return {
+            "type": "line",
+            "data": {
+                "labels": times,
+                "datasets": [{
+                    "label": "Value",
+                    "data": values,
+                    "spanGaps": True,
+                    "tension": 0.2,
+                }],
+            },
+            "options": {
+                "responsive": True,
+                "scales": {
+                    "x": {
+                        "title": {
+                            "display": True,
+                            "text": "Time"}, },
+                    "y": {
+                        "title": {
+                            "display": True,
+                            "text": "Value"},
+                        "min": -1,
+                        "max": 1, },
+                },
+            },
+        }

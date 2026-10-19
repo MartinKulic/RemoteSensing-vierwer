@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from rio_tiler.errors import TileOutsideBounds
 from starlette.responses import Response
 
-from app.Inventory import Inventory_Quarter
+from app.Inventory import Inventory_Quarter, Inventory_Disturbance_Quarter
 
 app = FastAPI()
 
@@ -30,10 +30,13 @@ app.frontend("/", directory=frontend_dir, fallback="404.html")
 
 class CollectionsNames(str, Enum):
     NDVI_W_GAPS = "NDVI with gaps"
+    YEARLY_DISTURBANCE = "Yearly disturbances"
 
 
 available_collections = {
     CollectionsNames.NDVI_W_GAPS: Inventory_Quarter(Path("/home/main/repositories/RemoteSensing/Download/Quarterly_COG_NDVI/ndvi_inventory.csv")),
+    CollectionsNames.YEARLY_DISTURBANCE: Inventory_Disturbance_Quarter(Path("/home/main/repositories/RemoteSensing/Download/ndvi_quarterly_noNAN_fill/inventory_tif.csv"),
+                                                                       Path("/home/main/repositories/RemoteSensing/Analysis/DisturbenceAnalisis_1/inventory.csv"))
     }
 
 
@@ -53,13 +56,13 @@ async def get_map(collection: CollectionsNames, request: Request):
             "bounds": select_collection.get_init_bbox(),
             "availableKeyes": select_collection.get_keyes(),
             "availableTimes": select_collection.get_times(),
-            "available_collections": [col.value for col in available_collections],
+            "available_collections": [col.value for col in available_collections.__reversed__()],
             "available_bands": select_collection.get_bands(),
         },
     )
 @app.get("/map", response_class=HTMLResponse)
 async def get_map_default(request: Request):
-    return RedirectResponse(request.url_for("get_map", collection=CollectionsNames.NDVI_W_GAPS.value), status_code=307) #301 - permanent redirect
+    return RedirectResponse(request.url_for("get_map", collection=CollectionsNames.YEARLY_DISTURBANCE.value), status_code=307) #301 - permanent redirect
 
 @app.get("/tiles/{collection}/{stringified_key}/{x}/{y}/{z}.png")
 async def get_collection_at_time(collection: CollectionsNames,
