@@ -262,6 +262,17 @@ class Inventory_Disturbance_Quarter(Inventory):
         }
         return img.render(colormap=colormap, img_format="PNG")
 
+    def _get_disturbance_years_at_point(self, lat: float, lon: float) -> list[int]:
+        years = []
+        for key in self.get_keyes():
+            year = key[0]
+            with Reader(str(self.disturbance_inventory.loc[year]["Path"])) as image:
+                point = image.point(lon=lon, lat=lat, indexes=1)
+                value = point.data[0]
+            if value is not None and not np.isnan(value) and value == 1:
+                years.append(year)
+        return years
+
     @override
     def get_chart_config_for_point_response(self, lat: float, lon: float, band: int = 1):
         values = []
@@ -274,31 +285,42 @@ class Inventory_Disturbance_Quarter(Inventory):
 
         times = self.get_times()
 
+        annotations = {}
+        for year in self._get_disturbance_years_at_point(lat, lon):
+            label = self.key_to_time([year])  # must match an entry in `times`
+            annotations[f"disturbance_{year}"] = {
+                "type": "line",
+                "xMin": label,
+                "xMax": label,
+                "borderColor": "rgba(255, 0, 0, 0.8)",
+                "borderWidth": 2,
+                "borderDash": [6, 4],
+                "label": {
+                    "display": True,
+                    "content": f"Disturbance {year}",
+                    "position": "start",
+                },
+            }
 
         return {
-            "type": "line",
-            "data": {
-                "labels": times,
-                "datasets": [{
-                    "label": "Value",
-                    "data": values,
-                    "spanGaps": True,
-                    "tension": 0.2,
-                }],
+        "type": "line",
+        "data": {
+            "labels": times,
+            "datasets": [{
+                "label": "NDVI",
+                "data": values,
+                "spanGaps": True,
+                "tension": 0.2,
+            }],
+        },
+        "options": {
+            "responsive": True,
+            "plugins": {
+                "annotation": {"annotations": annotations},
             },
-            "options": {
-                "responsive": True,
-                "scales": {
-                    "x": {
-                        "title": {
-                            "display": True,
-                            "text": "Time"}, },
-                    "y": {
-                        "title": {
-                            "display": True,
-                            "text": "Value"},
-                        "min": -1,
-                        "max": 1, },
-                },
+            "scales": {
+                "x": {"title": {"display": True, "text": "Time"}},
+                "y": {"title": {"display": True, "text": "NDVI"}, "min": -1, "max": 1},
             },
-        }
+        },
+    }
